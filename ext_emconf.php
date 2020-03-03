@@ -11,16 +11,16 @@
  ***************************************************************/
 
 $EM_CONF[$_EXTKEY] = [
-    'title' => 'TYPO3 Development Tools',
-    'description' => 'Missing TYPO3 development tools',
+    'title' => 'TYPO3 development tools',
+    'description' => 'TYPO3 development tools',
     'category' => 'misc',
     'author' => 'R3 H6',
     'author_email' => 'r3h6@outlook.com',
-    'state' => 'beta',
+    'state' => 'alpha',
     'uploadfolder' => 0,
     'createDirs' => '',
     'clearCacheOnLoad' => 0,
-    'version' => '1.0.0',
+    'version' => '0.0.1',
     'constraints' => [
         'depends' => [
             'typo3' => '9.5.0-9.5.99',

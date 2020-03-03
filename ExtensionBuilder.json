@@ -2,7 +2,7 @@
     "modules": [],
     "properties": {
         "backendModules": [],
-        "description": "Missing TYPO3 development tools",
+        "description": "TYPO3 development tools",
         "emConf": {
             "category": "misc",
             "custom_category": "",
@@ -16,7 +16,7 @@
             "version": "1.0.0"
         },
         "extensionKey": "t3devtools",
-        "name": "TYPO3 Development Tools",
+        "name": "TYPO3 development tools",
         "originalExtensionKey": "",
         "originalVendorName": "",
         "persons": [
