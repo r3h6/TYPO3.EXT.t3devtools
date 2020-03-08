@@ -30,7 +30,7 @@ use TYPO3\CMS\Core\Utility\GeneralUtility;
 /**
  * Command "deprecation:scan"
  */
-class DeprecationScanCommand extends Command
+class DeprecationScanCommand extends AbstractCommand
 {
     protected function configure()
     {
@@ -43,18 +43,10 @@ class DeprecationScanCommand extends Command
         ;
     }
 
-    protected function initialize(InputInterface $input, OutputInterface $output)
-    {
-    }
-
-    protected function interact(InputInterface $input, OutputInterface $output)
-    {
-    }
 
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        $io = new SymfonyStyle($input, $output);
-        $io->title('Scanning for deprecations');
+        $this->io->title('Scanning for deprecations');
 
         $paths = $input->getArgument('paths');
         $minIndicatorLevel = IndicatorLevel::cast($input->getOption('level'));
@@ -78,12 +70,12 @@ class DeprecationScanCommand extends Command
                     $links = ExtensionScannerUtility::restFilesLinks($match['restFiles']);
                     $line = (int) $match['line'];
 
-                    if ($indicatorLevel->gte($minIndicatorLevel) || $io->isVerbose()) {
-                        $io->writeln('<info>'.$relativePath.'</>');
-                        $io->writeln($match['message'] . ' <comment>('.$match['indicator'].')</>');
-                        $io->writeln('<comment>'.$line.'</> '.FileUtility::getLineFromFile($absoluteFilePath, $line));
-                        $io->writeln($links);
-                        $io->writeln('');
+                    if ($indicatorLevel->gte($minIndicatorLevel) || $this->io->isVerbose()) {
+                        $this->io->writeln('<info>'.$relativePath.'</>');
+                        $this->io->writeln($match['message'] . ' <comment>('.$match['indicator'].')</>');
+                        $this->io->writeln('<comment>'.$line.'</> '.FileUtility::getLineFromFile($absoluteFilePath, $line));
+                        $this->io->writeln($links);
+                        $this->io->writeln('');
                     }
 
                     if ($indicatorLevel->gte($minIndicatorLevel)) {
