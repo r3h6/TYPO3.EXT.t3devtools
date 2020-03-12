@@ -195,6 +195,6 @@ class ExtensionScannerUtility
             $links[] = static::$linksCache[$restFile];
         }
 
-        return $links;
+        return array_filter($links);
     }
 }

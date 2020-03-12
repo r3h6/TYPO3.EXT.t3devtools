@@ -74,7 +74,9 @@ class DeprecationScanCommand extends AbstractCommand
                         $this->io->writeln('<info>'.$relativePath.'</>');
                         $this->io->writeln($match['message'] . ' <comment>('.$match['indicator'].')</>');
                         $this->io->writeln('<comment>'.$line.'</> '.FileUtility::getLineFromFile($absoluteFilePath, $line));
-                        $this->io->writeln($links);
+                        if (!empty($links)) {
+                            $this->io->writeln($links);
+                        }
                         $this->io->writeln('');
                     }
 
