@@ -7,4 +7,7 @@ return [
     'fal:placeholders' => [
         'class' => \R3H6\T3devtools\Command\FalPlaceholdersCommand::class,
     ],
+    'database:seed' => [
+        'class' => \R3H6\T3devtools\Command\DatabaseSeedCommand::class,
+    ],
 ];

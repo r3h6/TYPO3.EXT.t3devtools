@@ -5,6 +5,7 @@ namespace R3H6\T3devtools\Generator;
 use TYPO3\CMS\Core\Resource\File;
 use TYPO3\CMS\Core\Utility\CommandUtility;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
+use R3H6\T3devtools\Exception\InvalidImageSizeException;
 
 
 class FakeImageGenerator implements FakeFileGeneratorInterface
@@ -25,21 +26,23 @@ class FakeImageGenerator implements FakeFileGeneratorInterface
     {
         $width = $file->getProperty('width');
         $height = $file->getProperty('height');
-        if ($width && $height) {
-            $params = '-size ' . $width . 'x' . $height
-                . ' -background lightgrey'
-                . ' -fill darkgrey'
-                . ' -pointsize 24'
-                . ' -gravity center'
-                // . ' -draw "line 0,0 '.$width.','.$height.' line 0,'.$height.' '.$width.',0"'
-                . ' -font ' . escapeshellarg($this->font)
-                . ' label:\'' . basename($filePath) .'\\n'. $width . 'x' . $height . 'px\'';
-            $cmd = CommandUtility::imageMagickCommand(
-                'convert',
-                $params . ' ' . escapeshellarg($filePath)
-            );
-            CommandUtility::exec($cmd);
-            GeneralUtility::fixPermissions($filePath);
+        if (!$width || !$height) {
+            throw new InvalidImageSizeException($filePath);
         }
+        $params = '-size ' . $width . 'x' . $height
+            . ' -background lightgrey'
+            . ' -fill darkgrey'
+            . ' -pointsize 24'
+            . ' -gravity center'
+            // . ' -draw "line 0,0 '.$width.','.$height.' line 0,'.$height.' '.$width.',0"'
+            . ' -font ' . escapeshellarg($this->font)
+            . ' label:\'' . $file->getName() .'\\n'. $width . 'x' . $height . 'px\'';
+        $cmd = CommandUtility::imageMagickCommand(
+            'convert',
+            $params . ' ' . escapeshellarg($filePath)
+        );
+
+        CommandUtility::exec($cmd);
+        GeneralUtility::fixPermissions($filePath);
     }
 }
