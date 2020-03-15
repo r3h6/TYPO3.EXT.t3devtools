@@ -8,11 +8,25 @@ class Seed extends \ArrayObject
 
     protected $table;
 
-    public function __construct($table, $identifier, $values)
+    protected $hash;
+
+    public function __construct($table, array $values = [], $identifier = null)
     {
         parent::__construct($values);
         $this->table = $table;
-        $this->identifier = $identifier;
+        $this->identifier = $identifier ?? $values['uid'] ?? uniqid('NEW');
+        $this->hash = uniqid('#', true);
+    }
+
+    public function getHash()
+    {
+        return $this->hash;
+    }
+
+    public function setUid(int $uid): self
+    {
+        $this->identifier = $uid;
+        return $this;
     }
 
     public function getIdentifier()
@@ -23,5 +37,11 @@ class Seed extends \ArrayObject
     public function getTable()
     {
         return $this->table;
+    }
+
+    public function reset(): self
+    {
+        $this->exchangeArray([]);
+        return $this;
     }
 }

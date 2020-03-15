@@ -27,6 +27,7 @@ use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Helhum\Typo3Console\Database\Process\MysqlCommand;
+use R3H6\T3devtools\Seeder\DatabaseSeeder;
 
 /**
  * Command "database:seed"
@@ -34,7 +35,7 @@ use Helhum\Typo3Console\Database\Process\MysqlCommand;
 class DatabaseSeedCommand extends Command
 {
     /**
-     * @var \Symfony\Component\Console\Style\SymfonyStyle
+     * @var \R3H6\T3devtools\Console\CommandStyle
      */
     protected $io;
 
@@ -42,6 +43,7 @@ class DatabaseSeedCommand extends Command
     {
         $this
             ->setDescription('Fills database with data.')
+            ->addOption('pid', null, InputOption::VALUE_OPTIONAL, 'Page uid')
             ->addArgument('sources', InputArgument::REQUIRED, 'File or directory')
         ;
     }
@@ -118,7 +120,19 @@ class DatabaseSeedCommand extends Command
 
         $className = $file->getBasename('.php');
 
-        $seeder = GeneralUtility::makeInstance($className);
+        $pid = $this->io->getInput()->getOption('pid');
+
+        /** \R3H6\T3devtools\Seeder\DatabaseSeeder $seeder */
+        $seeder = GeneralUtility::makeInstance($className, $pid);
+
+        if (!$seeder instanceof DatabaseSeeder) {
+            throw new \RuntimeException("Class '$className' does not inerhit from DatabaseSeeder", 1584307646121);
+        }
+
+        if ($pid !== null) {
+            $seeder->setDefaultPid((int) $pid);
+        }
+
         $seeder->run();
     }
 

@@ -5,7 +5,7 @@ namespace R3H6\T3devtools\Seeder;
 use TYPO3\CMS\Core\DataHandling\DataHandler;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 
-abstract class DatabaseSeeder implements SeederInterface
+abstract class DatabaseSeeder
 {
 
 
@@ -19,26 +19,37 @@ abstract class DatabaseSeeder implements SeederInterface
      */
     protected $faker;
 
+    /**
+     * @var int
+     */
+    protected $defaultPid;
+
     public function __construct()
     {
-        $this->data = GeneralUtility::makeInstance(Data::class);
-        $this->faker = GeneralUtility::makeInstance(Faker::class, $this->data);
+        // $this->data = GeneralUtility::makeInstance(Data::class);
+        // $this->faker = GeneralUtility::makeInstance(Faker::class, $this->data);
+        $this->defaultPid = 1;
     }
 
-    public function table($table): TableFactory
+    public function setDefaultPid(int $pid)
     {
-        return GeneralUtility::makeInstance(TableFactory::class, $this, $table);
+        $this->defaultPid = $pid;
     }
 
-    public function file($extensions = null)
+    public function table($table): Table
     {
-        return GeneralUtility::makeInstance(FileFactory::class, $this, $extensions);
+        return GeneralUtility::makeInstance(Table::class, $table, $this->defaultPid);
+    }
+
+    public function file($uploadDir = 'fileadmin/user_upload/import')
+    {
+        return GeneralUtility::makeInstance(File::class, $uploadDir);
     }
 
     public function run()
     {
-        $this->seed();
-        $this->data->commit();
+        $this->seed($this);
+        // $this->data->commit();
     }
 
     public function getData(): Data
@@ -51,5 +62,5 @@ abstract class DatabaseSeeder implements SeederInterface
         return $this->faker;
     }
 
-    abstract protected function seed();
+    abstract protected function seed($seeder);
 }
