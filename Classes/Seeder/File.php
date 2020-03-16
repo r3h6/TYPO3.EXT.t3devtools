@@ -4,6 +4,7 @@ namespace R3H6\T3devtools\Seeder;
 
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use R3H6\T3devtools\Generator\FakeFileGenerator;
+use TYPO3\CMS\Core\Utility\MathUtility;
 
 class File
 {
@@ -29,10 +30,10 @@ class File
 
     public function __construct($uploadDir)
     {
-        $this->uploadDir = $uploadDir;
+        $this->uploadDir = trim($uploadDir, '/');
         $this->files = new \ArrayObject();
 
-        $this->extensions = $extensions ?? self::FILE_EXTENSIONS;
+        $this->extensions = self::FILE_EXTENSIONS;
         $this->generator = GeneralUtility::makeInstance(FakeFileGenerator::class);
     }
 
@@ -82,26 +83,27 @@ class File
     }
 
 
-    public function create($countOrFileNames)
+    public function create($countOrFileMap)
     {
-        $fileNames = [];
-        if (is_int($countOrFileNames)) {
-            for ($i = 0; $i < $countOrFileNames; $i++) {
-                $fileNames[] = uniqid('Fake') . '.' . $this->extensions[array_rand($this->extensions)];
+        $fileMap = [];
+        if (is_int($countOrFileMap)) {
+            for ($i = 0; $i < $countOrFileMap; $i++) {
+                $targetName = uniqid('Mock') . '.' . $this->extensions[array_rand($this->extensions)];
+                $fileMap[$targetName] = 'local';
             }
         }
-        if (is_array($countOrFileNames)) {
-            $fileNames += $countOrFileNames;
+        if (is_array($countOrFileMap)) {
+            $fileMap += $countOrFileMap;
         }
 
-        foreach ($fileNames as $sourceFile) {
-            $this->add($this->createFile($sourceFile));
+        foreach ($fileMap as $targetName => $processorConfig) {
+            $this->add($this->createFile($targetName, $processorConfig));
         }
 
         return $this;
     }
 
-    protected function createFile($sourceFile)
+    protected function createFile($targetName, $processorConfig)
     {
         /** @var \TYPO3\CMS\Core\Resource\StorageRepository $storageRepository */
         $storageRepository = \TYPO3\CMS\Core\Utility\GeneralUtility::makeInstance(
@@ -110,38 +112,44 @@ class File
 
         /** @var $storage \TYPO3\CMS\Core\Resource\ResourceStorage */
         $storage = reset($storageRepository->findAll());
+        list($processorType, $size, $extension) = GeneralUtility::trimExplode(';', $processorConfig);
 
-        try {
-            $folder = $storage->getFolder($storage->getDefaultFolder()->getIdentifier() . 'import');
-        } catch (\TYPO3\CMS\Core\Resource\Exception\FolderDoesNotExistException $exception) {
-            $folder = $storage->createFolder($storage->getDefaultFolder()->getIdentifier() . 'import');
+        if (!$extension) {
+            $extension = $this->extensions[array_rand($this->extensions)];
         }
 
-        if (strpos($sourceFile, 'http') === 0) {
-            $fileName = $storage->sanitizeFileName($sourceFile);
-            if ($storage->hasFile($folder->getIdentifier() . $fileName)) {
-                return $storage->getFile($folder->getIdentifier() . $fileName);
-            }
+        if (MathUtility::canBeInterpretedAsInteger($targetName)) {
+            $targetName = $storage->sanitizeFileName($processorConfig) . '.' . $extension;
+        }
+
+        try {
+            $folder = $storage->getFolder($storage->getDefaultFolder()->getIdentifier() . $this->uploadDir);
+        } catch (\TYPO3\CMS\Core\Resource\Exception\FolderDoesNotExistException $exception) {
+            $folder = $storage->createFolder($storage->getDefaultFolder()->getIdentifier() . $this->uploadDir);
+        }
+
+        if ($storage->hasFile($folder->getIdentifier() . $targetName)) {
+            return $storage->getFile($folder->getIdentifier() . $targetName);
+        }
+
+        if (strpos($processorType, 'http') === 0) {
             $tmpPath = GeneralUtility::tempnam('Mock');
-            file_put_contents($tmpPath, file_get_contents($sourceFile));
+            file_put_contents($tmpPath, file_get_contents($processorType));
         } else {
-            list($fileName, $params) = GeneralUtility::trimExplode('?', $sourceFile);
-            if ($storage->hasFile($folder->getIdentifier() . $fileName)) {
-                return $storage->getFile($folder->getIdentifier() . $fileName);
-            }
+
             $width = null;
             $height = null;
-            if ($params) {
-                list($width, $height) = GeneralUtility::trimExplode('x', (string)$params);
+            if ($size) {
+                list($width, $height) = GeneralUtility::trimExplode('x', (string) $size);
             }
 
-            $tmpPath = GeneralUtility::tempnam('Mock', $fileName);
+            $tmpPath = GeneralUtility::tempnam('Mock', $targetName);
             /** \TYPO3\CMS\Core\Resource\File $file */
             $tmpFile = GeneralUtility::makeInstance(
                 \TYPO3\CMS\Core\Resource\File::class,
                 [
-                    'name' => $fileName,
-                    'extension' => pathinfo($fileName, PATHINFO_EXTENSION),
+                    'name' => $targetName,
+                    'extension' => pathinfo($targetName, PATHINFO_EXTENSION),
                     'width' => (int) ($width ?? 800),
                     'height' => (int) ($height ?? $width ?? 600),
                 ],
@@ -150,6 +158,6 @@ class File
             $this->generator->create($tmpFile, $tmpPath);
         }
 
-        return $storage->addFile($tmpPath, $folder, $fileName);
+        return $storage->addFile($tmpPath, $folder, $targetName);
     }
 }

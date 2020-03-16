@@ -161,7 +161,11 @@ class Table
             if (!is_numeric($id)) {
                 $substituteIdsMap[$id] = $seed;
             }
-            $data[$seed->getTable()][$id] = $seed->getArrayCopy();
+            $properties = $seed->getArrayCopy();
+            if (!empty($properties)) {
+                $data[$seed->getTable()][$id] = $properties;
+            }
+            $seed->reset();
         }
 
         $GLOBALS['BE_USER']->backendCheckLogin();
@@ -180,9 +184,13 @@ class Table
                     /** \R3H6\T3devtools\Seeder\Seed $seed */
                     $seed = $substituteIdsMap[$tmpId];
                     $seed->setUid((int) $uid);
-                    $seed->reset();
                 }
             }
         }
+    }
+
+    public function __destruct()
+    {
+        $this->commit();
     }
 }

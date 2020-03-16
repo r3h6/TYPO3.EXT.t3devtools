@@ -7,18 +7,6 @@ use TYPO3\CMS\Core\Utility\GeneralUtility;
 
 abstract class DatabaseSeeder
 {
-
-
-    /**
-     * @var \R3H6\T3devtools\Seeder\Data
-     */
-    protected $data;
-
-    /**
-     * @var \R3H6\T3devtools\Seeder\Faker
-     */
-    protected $faker;
-
     /**
      * @var int
      */
@@ -26,8 +14,6 @@ abstract class DatabaseSeeder
 
     public function __construct()
     {
-        // $this->data = GeneralUtility::makeInstance(Data::class);
-        // $this->faker = GeneralUtility::makeInstance(Faker::class, $this->data);
         $this->defaultPid = 1;
     }
 
@@ -49,17 +35,6 @@ abstract class DatabaseSeeder
     public function run()
     {
         $this->seed($this);
-        // $this->data->commit();
-    }
-
-    public function getData(): Data
-    {
-        return $this->data;
-    }
-
-    public function getFaker(): Faker
-    {
-        return $this->faker;
     }
 
     abstract protected function seed($seeder);
