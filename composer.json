@@ -4,7 +4,8 @@
     "description": "TYPO3 development tools",
     "require": {
         "typo3/cms-core": "^9.5",
-        "symfony/finder": "^4.3"
+        "symfony/finder": "^4.3",
+        "helhum/typo3-console": "^5.5"
     },
     "autoload": {
         "psr-4": {
