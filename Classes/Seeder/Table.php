@@ -98,7 +98,7 @@ class Table
         return $this->random(1);
     }
 
-    public function localize($locale, $sysLanguageUid)
+    public function localize($locale, $sysLanguageUid): self
     {
 
         $faker = GeneralUtility::makeInstance(Faker::class, $locale);
@@ -124,7 +124,7 @@ class Table
         return $localizedSet;
     }
 
-    public function commit()
+    public function commit(): self
     {
         $data = [];
         $substituteIdsMap = [];
@@ -187,6 +187,7 @@ class Table
                 }
             }
         }
+        return $this;
     }
 
     public function __destruct()
