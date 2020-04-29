@@ -68,9 +68,11 @@ class DatabaseSeedCommand extends Command
             $finder->in($sources)->files()->name(['*.xml', '*.t3d', '*.sql', '*.php']);
         }
 
-        $this->io->progressStart(is_array($finder) ? count($finder) : iterator_count($finder));
+
         foreach ($finder as $file) {
-            $this->io->progressAdvance();
+
+            $this->io->write('Seeding <info>"'.$file->getBasename().'"</>...');
+
             switch ($file->getExtension()){
                 case 'xml':
                 case 't3d':
@@ -86,7 +88,7 @@ class DatabaseSeedCommand extends Command
                     break;
             }
         }
-        $this->io->progressFinish();
+
     }
 
     protected function importFromT3d(\SplFileInfo $file)
