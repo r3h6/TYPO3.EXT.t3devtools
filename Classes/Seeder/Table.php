@@ -50,11 +50,6 @@ class Table
         return $this;
     }
 
-    public function getSeeds()
-    {
-        return $this->seeds;
-    }
-
     public function csv()
     {
         $ids = [];
@@ -124,16 +119,59 @@ class Table
         return $localizedSet;
     }
 
+    protected function fillData (&$data, &$substituteIdsMap)
+    {
+        foreach ($this->seeds as $seed) {
+            $seedId = $seed->getIdentifier();
+            if (!is_numeric($seedId)) {
+                $substituteIdsMap[$seedId] = $seed;
+            }
+            foreach ($seed as $propertyName => $propertyValue) {
+                if ($propertyValue instanceof Table) {
+                    // $seeds = $propertyValue->seeds->getArrayCopy() + $seeds;
+                    $propertyValue->fillData($data, $substituteIdsMap);
+                    $propertyValueString = $propertyValue->csv();
+                } else if ($propertyValue instanceof File) {
+                    $files = $propertyValue->getFiles();
+                    $ids = [];
+                    foreach ($files as $file) {
+                        $id = uniqid('NEW');
+                        $ids[] = $id;
+                        $data['sys_file_reference'][$id] = [
+                            'pid' => $seed['pid'],
+                            'table_local' => 'sys_file',
+                            'uid_local' => $file->getUid(),
+                            'tablenames' => $seed->getTable(),
+                            'uid_foreign' => $seed->getIdentifier(),
+                            'fieldname' => $propertyName,
+                        ];
+                    }
+                    $propertyValueString = join(',', $ids);
+                } else {
+                    $propertyValueString = $propertyValue;
+                }
+                $data[$seed->getTable()][$seedId][$propertyName] = $propertyValueString;
+            }
+        }
+    }
+
     public function commit(): self
     {
         $data = [];
         $substituteIdsMap = [];
 
+
+        $this->fillData($data, $substituteIdsMap);
+
+        // print_r($data);
+        // exit;
+
+/*
         $seeds = $this->seeds->getArrayCopy();
         foreach ($seeds as $seed) {
             foreach ($seed as $propertyName => $propertyValue) {
                 if ($propertyValue instanceof Table) {
-                    $seeds = $propertyValue->getSeeds()->getArrayCopy() + $seeds;
+                    $seeds = $propertyValue->seeds->getArrayCopy() + $seeds;
                     $seed[$propertyName] = $propertyValue->csv();
                 }
                 if ($propertyValue instanceof File) {
@@ -167,7 +205,7 @@ class Table
             }
             $seed->reset();
         }
-
+*/
         $GLOBALS['BE_USER']->backendCheckLogin();
         // $GLOBALS['BE_USER']->user['admin'] = true;
         $this->dataHandler->start($data, []);

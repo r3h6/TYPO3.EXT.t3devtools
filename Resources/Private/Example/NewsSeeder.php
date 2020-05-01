@@ -32,8 +32,8 @@ class NewsSeeder extends DatabaseSeeder
 
         $seeder
             ->table('tx_news_domain_model_news')
-            ->create(9)
-            ->each(function (Seed $seed, Faker $faker) use ($images, $files, $categories) {
+            ->create(1)
+            ->each(function (Seed $seed, Faker $faker) use ($seeder, $images, $files, $categories) {
                 $seed['title'] = $faker->sentence();
                 $seed['teaser'] = $faker->paragraph();
                 $seed['bodytext'] = $faker->text();
@@ -44,7 +44,15 @@ class NewsSeeder extends DatabaseSeeder
                 $seed['fal_media'] = $images->one();
                 $seed['fal_related_files'] = $files->random(2);
 
-                // $seed['content_elements'] = $seeder->table('tt_content')->create(1);
+                $seed['content_elements'] = $seeder
+                    ->table('tt_content')
+                    ->create(1)
+                    ->each(function(Seed $seed, Faker $faker) {
+                        $seed['header'] = $faker->sentence();
+                        $seed['CType'] = 'text';
+                        $seed['bodytext'] = $faker->paragraph();
+                    })
+                ;
             })
         ;
     }
