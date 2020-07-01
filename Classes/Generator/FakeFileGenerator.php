@@ -22,6 +22,9 @@ class FakeFileGenerator implements FakeFileGeneratorInterface
     {
         $fileExtension = $file->getExtension();
 
+        $dir = dirname($filePath);
+        GeneralUtility::mkdir_deep($dir);
+
         if (isset(static::$generators[$fileExtension])) {
             $generator = GeneralUtility::makeInstance(static::$generators[$fileExtension]);
             $generator->create($file, $filePath);
