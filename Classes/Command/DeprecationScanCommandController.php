@@ -2,11 +2,15 @@
 declare(strict_types = 1);
 namespace R3H6\T3devtools\Command;
 
-use Helhum\Typo3Console\Mvc\Controller\CommandController;
-use R3H6\T3devtools\Utility\ExtensionScannerUtility;
+use Symfony\Component\Finder\Finder;
 use R3H6\T3devtools\Utility\FileUtility;
 use R3H6\T3devtools\Utility\IndicatorLevel;
-use Symfony\Component\Finder\Finder;
+use R3H6\T3devtools\Command\AbstractCommand;
+use Symfony\Component\Console\Input\InputOption;
+use Symfony\Component\Console\Input\InputArgument;
+use Symfony\Component\Console\Input\InputInterface;
+use R3H6\T3devtools\Utility\ExtensionScannerUtility;
+use Symfony\Component\Console\Output\OutputInterface;
 
 /*
  * This file is part of the TYPO3 CMS project.
@@ -25,20 +29,26 @@ use Symfony\Component\Finder\Finder;
 /**
  * Command "deprecation:scan"
  */
-class DeprecationScanCommandController extends CommandController
+class DeprecationScanCommandController extends AbstractCommand
 {
-    /**
-     * Scans code for deprecations.
-     *
-     * @param array $paths
-     * @param string $level Minimum level for return error exit code
-     * @param string $only Show only certain types of changes
-     * @param boolean $first Exit immediatly on first error
-     * @return void
-     */
-    public function executeCommand(array $paths, $level = 'strong', $only = 'all', $first = false)
+
+    protected function configure()
     {
-        $io = $this->output->getSymfonyConsoleOutput();
+        $this
+            ->setDescription('Scans code for deprecations.')
+            ->addArgument('path', InputArgument::REQUIRED | InputArgument::IS_ARRAY, 'Directory path to scan')
+            ->addOption('level', null, InputOption::VALUE_OPTIONAL, 'Minimum level for return error exit code', 'strong')
+            ->addOption('only', null, InputOption::VALUE_OPTIONAL, 'Show only certain types of changes',  'all')
+            ->addOption('first', null, InputOption::VALUE_OPTIONAL, 'Exit immediatly on first error', false)
+        ;
+    }
+
+    public function execute(InputInterface $input, OutputInterface $output)
+    {
+        $paths = (array) $input->getArgument('path');
+        $level = $input->getOption('level');
+        $only = $input->getOption('only');
+        $first = $input->getOption('first');
 
         $minIndicatorLevel = IndicatorLevel::cast($level);
         $exitOnError = $first;
@@ -46,7 +56,7 @@ class DeprecationScanCommandController extends CommandController
 
         $matchers = ExtensionScannerUtility::getMatchers();
 
-        $this->outputLine('Scanning files ('.$fileNamePattern.') in '.join(' ', $paths));
+        $this->io->writeln('Scanning files ('.$fileNamePattern.') in '.join(' ', $paths));
 
         $finder = new Finder();
         $files = $finder->files()->in($paths)->name($fileNamePattern)->sortByName();
@@ -54,12 +64,12 @@ class DeprecationScanCommandController extends CommandController
         $errors = [];
 
         foreach ($files as $file) {
-            $this->output('.');
+            $this->io->write('.');
             $matches = ExtensionScannerUtility::scanFile($file->getPathname(), $matchers);
             if (!empty($matches)){
                 foreach ($matches as $match) {
                     $indicatorLevel = IndicatorLevel::cast($match['indicator']);
-                    if ($indicatorLevel->gte($minIndicatorLevel) || $io->isVerbose()) {
+                    if ($indicatorLevel->gte($minIndicatorLevel) || $this->io->isVerbose()) {
                         $errors[] = [
                             'file' => $file,
                             'match' => $match,
@@ -73,7 +83,7 @@ class DeprecationScanCommandController extends CommandController
             }
         }
 
-        $this->outputLine();
+        $this->io->writeln('');
 
         foreach ($errors as $error) {
             /** array $match */
@@ -87,19 +97,20 @@ class DeprecationScanCommandController extends CommandController
 
             $relativePath = trim(str_replace($paths, '', $file->getPathname()), '/');
 
-            $this->outputLine('<info>'.$relativePath.'</>');
-            $this->outputLine($match['message'] . ' <comment>('.$match['indicator'].')</>');
-            $this->outputLine('<comment>'.$line.'</> '.FileUtility::getLineFromFile($file->getPathname(), $line));
+            $this->io->writeln('<info>'.$relativePath.'</>');
+            $this->io->writeln($match['message'] . ' <comment>('.$match['indicator'].')</>');
+            $this->io->writeln('<comment>'.$line.'</> '.FileUtility::getLineFromFile($file->getPathname(), $line));
             if (!empty($links)) {
                 foreach ($links as $link) {
-                    $this->outputLine($link);
+                    $this->io->writeln($link);
                 }
             }
-            $this->outputLine('');
+            $this->io->writeln('');
         }
 
         if (!empty($errors)) {
-            $this->quit(1);
+            return 1;
         }
+        return 0;
     }
 }

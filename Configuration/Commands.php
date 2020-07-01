@@ -9,10 +9,10 @@ return [
     ],
     'deprecation:scan' => [
         'vendor' => 't3devtools',
-        'class' => \Helhum\Typo3Console\Mvc\Cli\Symfony\Command\DummyCommand::class,
+        'class' => \R3H6\T3devtools\Command\DeprecationScanCommandController::class,
         'schedulable' => false,
-        'controller' => \R3H6\T3devtools\Command\DeprecationScanCommandController::class,
-        'controllerCommandName' => 'execute',
+        // 'controller' => \R3H6\T3devtools\Command\DeprecationScanCommandController::class,
+        // 'controllerCommandName' => 'execute',
         'runLevel' => \Helhum\Typo3Console\Core\Booting\RunLevel::LEVEL_COMPILE,
     ],
 ];

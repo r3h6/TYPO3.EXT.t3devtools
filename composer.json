@@ -3,9 +3,9 @@
     "type": "typo3-cms-extension",
     "description": "TYPO3 development tools",
     "require": {
-        "typo3/cms-core": "^9.5",
+        "typo3/cms-core": "^10.4",
         "symfony/finder": "^4.3",
-        "helhum/typo3-console": "^5.5"
+        "helhum/typo3-console": "^6.0"
     },
     "autoload": {
         "psr-4": {
@@ -38,5 +38,8 @@
             "web-dir": ".Build/web",
             "extension-key": "t3devtools"
         }
+    },
+    "suggest": {
+        "fzaninotto/faker": "Only required for database seeding."
     }
 }
